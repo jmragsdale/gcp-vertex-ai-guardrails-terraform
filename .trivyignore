@@ -1,0 +1,10 @@
+# Trivy findings accepted with a written reason. CI references this file, so an
+# empty-but-present file is deliberate: every suppression added here has to
+# justify itself in a comment, and an unexplained ignore is how a security
+# baseline quietly stops being one.
+#
+# Format: one check ID per line, optionally with `exp:YYYY-MM-DD`.
+#
+# Currently empty. The one accepted static-analysis finding in this repo is
+# Checkov's CKV_GCP_43, suppressed inline at the resource with a written reason
+# and backed by a validation block that enforces the same ceiling.

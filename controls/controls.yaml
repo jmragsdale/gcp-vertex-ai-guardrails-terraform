@@ -1,0 +1,510 @@
+# Machine-readable source of truth for CONTROLS.md.
+#
+#   python3 controls/render.py           regenerate CONTROLS.md
+#   python3 controls/render.py --check    CI gate: matrix current, every address real
+#
+# Every `implementation` entry names a Terraform address that must exist. A
+# control cannot be claimed here without code behind it.
+#
+# The `notes` field carries the honesty budget. Two things get a lot of use on
+# an AI baseline: runtime classifiers that reduce a risk without closing it,
+# and OWASP / AI RMF mappings that are one practitioner's reading.
+
+metadata:
+  cloud: gcp
+  cloud_name: Google Cloud Platform (Vertex AI)
+
+  frameworks:
+    owasp_llm:
+      name: OWASP Top 10 for LLM Applications
+      short: OWASP LLM
+      version: "2025"
+    nist_ai_rmf:
+      name: NIST AI Risk Management Framework
+      short: AI RMF
+      version: "1.0"
+    nist_800_53_r5:
+      name: NIST SP 800-53 Rev 5
+      short: NIST
+      version: Rev 5
+
+  framework_notes:
+    - >-
+      The OWASP LLM Top 10 describes application risks, most of which live in
+      code this repo cannot see: prompt construction, tool design, output
+      handling. A control here maps to an OWASP category when it reduces the
+      likelihood or blast radius of that risk at the platform layer. None of
+      them closes an OWASP category on its own.
+    - >-
+      NIST AI RMF subcategories are mapped only where infrastructure produces
+      the evidence the subcategory asks for (security evaluated, behaviour
+      monitored in production, privacy risk addressed, third-party risk
+      governed). GOVERN, MAP and most of MEASURE are organisational practice
+      and do not appear, by design rather than by omission.
+    - >-
+      Every mapping in this matrix is authored by one practitioner and reviewed
+      by nobody with authority. It is a defensible starting point for a control
+      narrative, not an assessment.
+    - >-
+      Nothing here has been applied against a real Google Cloud organization or
+      project. The matrix proves that claimed controls resolve to real Terraform
+      addresses. It does not prove they work.
+
+controls:
+  # ------------------------------------------------------------------ preventive: org policy
+  - id: ORG-001
+    title: Model allowlist — only approved Model Garden models and actions
+    module: org-policy
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM03]
+      nist_ai_rmf: [GOVERN 6.1]
+      nist_800_53_r5: [CM-7, SR-3]
+    implementation:
+      - org-policy:google_org_policy_policy.allowed_models
+    demo_safe: true
+    billable: false
+    notes: >-
+      Governs Model Garden models only, not models registered in Vertex AI Model
+      Registry, per Google's documentation. A self-uploaded model is outside
+      this control and needs its own review gate.
+
+  - id: ORG-002
+    title: Data residency for AI resources
+    module: org-policy
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM02]
+      nist_ai_rmf: [MEASURE 2.10]
+      nist_800_53_r5: [SA-9(5), CM-6]
+    implementation:
+      - org-policy:google_org_policy_policy.resource_locations
+    demo_safe: true
+    billable: false
+    notes: >-
+      Constrains where resources are created. Where a request to a global model
+      endpoint is processed is a separate choice made in application code by
+      calling a regional endpoint.
+
+  - id: ORG-003
+    title: CMEK required for Vertex AI, Cloud Storage and BigQuery
+    module: org-policy
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM02]
+      nist_ai_rmf: [MEASURE 2.10]
+      nist_800_53_r5: [SC-28, SC-12]
+    implementation:
+      - org-policy:google_org_policy_policy.restrict_non_cmek
+    demo_safe: true
+    billable: false
+    notes: >-
+      Only created when enable_cmek is true, because requiring CMEK without a
+      key to use would block every Vertex AI resource.
+
+  - id: ORG-004
+    title: Service account key creation disabled
+    module: org-policy
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM10]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [IA-5, AC-2]
+    implementation:
+      - org-policy:google_org_policy_policy.disable_sa_key_creation
+    demo_safe: true
+    billable: false
+
+  - id: ORG-005
+    title: No automatic Editor grant to default service accounts
+    module: org-policy
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM06]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [AC-6]
+    implementation:
+      - org-policy:google_org_policy_policy.no_default_sa_grants
+    demo_safe: true
+    billable: false
+    notes: >-
+      Affects projects created after the policy is set. Existing default
+      service accounts keep any Editor grant they already have.
+
+  - id: ORG-006
+    title: Vertex AI Workbench instances have no public IP
+    module: org-policy
+    enforcement: preventive
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SC-7]
+    implementation:
+      - org-policy:google_org_policy_policy.workbench_no_public_ip
+    demo_safe: true
+    billable: false
+
+  - id: ORG-007
+    title: Root access disabled on Vertex AI Workbench
+    module: org-policy
+    enforcement: preventive
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [AC-6(10)]
+    implementation:
+      - org-policy:google_org_policy_policy.workbench_no_root
+    demo_safe: true
+    billable: false
+
+  # ------------------------------------------------------------------ preventive: identity
+  - id: IAM-001
+    title: Dedicated runtime identity for the AI application
+    module: identity
+    enforcement: foundational
+    frameworks:
+      owasp_llm: [LLM06]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [AC-2, IA-2]
+    implementation:
+      - identity:google_service_account.genai_app
+    demo_safe: true
+    billable: false
+
+  - id: IAM-002
+    title: Predict-only custom role instead of roles/aiplatform.user
+    module: identity
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM06]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [AC-6, AC-6(1)]
+    implementation:
+      - identity:google_project_iam_custom_role.model_invoker
+      - identity:google_project_iam_member.genai_app_invoker
+    demo_safe: true
+    billable: false
+    notes: >-
+      aiplatform.endpoints.predict covers generateContent on publisher models.
+      Applications that also embed documents, use context caching or call
+      Vertex AI Search will need additional permissions; add them one at a time
+      and say why in the role description.
+
+  # ------------------------------------------------------------------ foundational: encryption
+  - id: ENC-001
+    title: Regional CMEK for Vertex AI with profile-driven rotation and protection level
+    module: encryption
+    enforcement: foundational
+    frameworks:
+      owasp_llm: [LLM02]
+      nist_ai_rmf: [MEASURE 2.10]
+      nist_800_53_r5: [SC-12, SC-12(1), SC-28]
+    implementation:
+      - encryption:google_kms_key_ring.genai
+      - encryption:google_kms_crypto_key.vertex
+    demo_safe: true
+    billable: true
+
+  - id: ENC-002
+    title: Key usable only by Google service agents; administrators hold no decrypt grant
+    module: encryption
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM02]
+      nist_ai_rmf: [MEASURE 2.10]
+      nist_800_53_r5: [SC-12, AC-5]
+    implementation:
+      - encryption:google_kms_crypto_key_iam_member.vertex_agent
+      - encryption:google_kms_crypto_key_iam_member.storage_agent
+    demo_safe: true
+    billable: false
+    notes: >-
+      The Vertex AI service agent exists only after the API is first used. On a
+      brand-new project this binding can fail until it does; the README has the
+      one-line gcloud command that creates it.
+
+  # ------------------------------------------------------------------ preventive: network
+  - id: NET-001
+    title: Custom-mode workload VPC with Private Google Access
+    module: network
+    enforcement: foundational
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SC-7]
+    implementation:
+      - network:google_compute_network.genai
+      - network:google_compute_subnetwork.genai
+    demo_safe: true
+    billable: false
+
+  - id: NET-002
+    title: Default-deny egress; the only path out is HTTPS to restricted Google APIs
+    module: network
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM02, LLM06]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SC-7(5), AC-4]
+    implementation:
+      - network:google_compute_firewall.deny_all_egress
+      - network:google_compute_firewall.allow_restricted_apis
+    demo_safe: true
+    billable: false
+    notes: >-
+      This is what makes an injected "send the data to this URL" instruction
+      fail at the network even when every application-layer control has been
+      talked past. Agents that legitimately browse the web need a separate,
+      proxied egress path, not a hole in this rule.
+
+  - id: NET-003
+    title: Google APIs resolve to restricted.googleapis.com
+    module: network
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM02]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SC-7, AC-4]
+    implementation:
+      - network:google_dns_managed_zone.googleapis
+      - network:google_dns_record_set.restricted_a
+      - network:google_dns_record_set.googleapis_cname
+      - network:google_compute_route.restricted_apis
+    demo_safe: true
+    billable: true
+
+  - id: NET-004
+    title: VPC flow logs on the workload subnet
+    module: network
+    enforcement: detective
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MANAGE 4.1]
+      nist_800_53_r5: [AU-12, SI-4]
+    implementation:
+      - network:google_compute_subnetwork.genai
+    demo_safe: true
+    billable: true
+
+  - id: NET-005
+    title: Explicit, logged default-deny ingress
+    module: network
+    enforcement: preventive
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SC-7]
+    implementation:
+      - network:google_compute_firewall.deny_all_ingress
+    demo_safe: true
+    billable: false
+
+  # ------------------------------------------------------------------ preventive: perimeter
+  - id: VSC-001
+    title: VPC Service Controls perimeter around AI data services (dry-run → enforced by profile)
+    module: vpc-sc
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM02, LLM03]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SC-7, AC-4, SC-7(10)]
+    implementation:
+      - vpc-sc:google_access_context_manager_service_perimeter.genai
+    demo_safe: false
+    billable: false
+    notes: >-
+      Organization scope only. In the standard profile the perimeter is dry-run:
+      it logs violations and blocks nothing. That is the correct first state and
+      it is not protection. Promote to strict after the violation log is quiet.
+
+  # ------------------------------------------------------------------ runtime: Model Armor
+  - id: MA-001
+    title: Prompt injection and jailbreak detection (template)
+    module: model-armor
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM01]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SI-10, SI-4]
+    implementation:
+      - model-armor:google_model_armor_template.genai
+    demo_safe: true
+    billable: true
+    notes: >-
+      A classifier. It reduces the volume of successful injections and
+      catches none of the ones it has not learned to see. Treat it as a
+      tripwire, and enforce tool authority in application code regardless.
+
+  - id: MA-002
+    title: Sensitive data detection in prompts and responses (template)
+    module: model-armor
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM02, LLM07]
+      nist_ai_rmf: [MEASURE 2.10]
+      nist_800_53_r5: [SI-4, AC-4]
+    implementation:
+      - model-armor:google_model_armor_template.genai
+    demo_safe: true
+    billable: true
+    notes: >-
+      Basic Sensitive Data Protection infoTypes only. Organisation-specific
+      identifiers need an advanced_config with your own inspect template.
+
+  - id: MA-003
+    title: Malicious URL detection (template)
+    module: model-armor
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM05]
+      nist_ai_rmf: [MEASURE 2.7]
+      nist_800_53_r5: [SI-3, SI-4]
+    implementation:
+      - model-armor:google_model_armor_template.genai
+    demo_safe: true
+    billable: true
+
+  - id: MA-004
+    title: Responsible AI content filters (template)
+    module: model-armor
+    enforcement: detective
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MEASURE 2.6]
+      nist_800_53_r5: [SI-4]
+    implementation:
+      - model-armor:google_model_armor_template.genai
+    demo_safe: true
+    billable: true
+
+  - id: MA-005
+    title: Floor setting enforced inline on every Vertex AI call in scope
+    module: model-armor
+    enforcement: preventive
+    frameworks:
+      owasp_llm: [LLM01, LLM02]
+      nist_ai_rmf: [MANAGE 1.3]
+      nist_800_53_r5: [SI-10, AC-3]
+    implementation:
+      - model-armor:google_model_armor_floorsetting.genai
+    demo_safe: true
+    billable: true
+    notes: >-
+      Binds at the organization in organization scope, so it applies to projects
+      that do not exist yet. Unlike the template, it does not depend on
+      application code calling it.
+
+  # ------------------------------------------------------------------ detective: audit
+  - id: LOG-001
+    title: Data Access audit logs for Vertex AI and Model Armor
+    module: logging
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM10]
+      nist_ai_rmf: [MANAGE 4.1]
+      nist_800_53_r5: [AU-2, AU-12]
+    implementation:
+      - logging:google_project_iam_audit_config.ai
+    demo_safe: true
+    billable: true
+    notes: >-
+      Records who called which model and when. Audit logs do not contain prompt
+      or response bodies; capturing those is an application decision with its
+      own privacy cost.
+
+  - id: LOG-002
+    title: Retention-locked log bucket for AI audit records
+    module: logging
+    enforcement: foundational
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MANAGE 4.1]
+      nist_800_53_r5: [AU-9, AU-11]
+    implementation:
+      - logging:google_logging_project_bucket_config.ai_audit
+    demo_safe: true
+    billable: true
+    notes: >-
+      Locked retention cannot be shortened or removed, including by project
+      owners and including by terraform destroy. That is the point, and it is
+      also why the examples say so twice.
+
+  - id: LOG-003
+    title: AI service and Model Armor records routed to the audit bucket
+    module: logging
+    enforcement: detective
+    frameworks:
+      owasp_llm: []
+      nist_ai_rmf: [MEASURE 2.4]
+      nist_800_53_r5: [AU-6, AU-12]
+    implementation:
+      - logging:google_logging_project_sink.ai_audit
+    demo_safe: true
+    billable: true
+
+  # ------------------------------------------------------------------ detective: alerting
+  - id: DET-001
+    title: Alert on IAM changes to Vertex AI resources
+    module: detection
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM06]
+      nist_ai_rmf: [MANAGE 4.1]
+      nist_800_53_r5: [AC-2(4), SI-4]
+    implementation:
+      - detection:google_logging_metric.guardrail
+      - detection:google_monitoring_alert_policy.guardrail
+    demo_safe: true
+    billable: false
+
+  - id: DET-002
+    title: Alert on model deployment and undeployment
+    module: detection
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM03, LLM04]
+      nist_ai_rmf: [MEASURE 2.4]
+      nist_800_53_r5: [CM-3, SI-4]
+    implementation:
+      - detection:google_logging_metric.guardrail
+      - detection:google_monitoring_alert_policy.guardrail
+    demo_safe: true
+    billable: false
+    notes: >-
+      A swapped model behind a stable endpoint is how a poisoned or unreviewed
+      model reaches production without anyone changing application code.
+
+  - id: DET-003
+    title: Alert on Model Armor template or floor setting changes
+    module: detection
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM01]
+      nist_ai_rmf: [MANAGE 4.1]
+      nist_800_53_r5: [CM-3, SI-4, AU-6]
+    implementation:
+      - detection:google_logging_metric.guardrail
+      - detection:google_monitoring_alert_policy.guardrail
+    demo_safe: true
+    billable: false
+    notes: >-
+      Guardrail tampering. Loosening a confidence threshold is quieter than
+      deleting a template and has much the same effect.
+
+  - id: DET-004
+    title: Budget alerts on the AI project, including forecast
+    module: detection
+    enforcement: detective
+    frameworks:
+      owasp_llm: [LLM10]
+      nist_ai_rmf: [MANAGE 4.1]
+      nist_800_53_r5: [SC-5]
+    implementation:
+      - detection:google_billing_budget.genai
+      - detection:google_monitoring_notification_channel.email
+    demo_safe: true
+    billable: false
+    notes: >-
+      Budgets notify; they do not stop spend. A hard ceiling needs Vertex AI
+      quota limits or a budget-triggered function that disables billing, and
+      the second option has consequences worth thinking through first.

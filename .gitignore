@@ -1,0 +1,55 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+tfplan
+tfplan.json
+plan.json
+
+# Secrets & Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_ed25519
+credentials
+*credentials*
+secrets.json
+secrets.yaml
+secrets.yml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs & Build artifacts
+*.log
+logs/
+dist/
+*.zip
+
+# Exported evidence bundles (may contain account identifiers).
+# Root-anchored on purpose: terraform/modules/evidence/ is source, not output.
+/evidence/
