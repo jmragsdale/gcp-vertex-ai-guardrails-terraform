@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">GCP Vertex AI guardrails architecture</title>
+  <desc id="desc">Preventive controls across the top (organization policy, runtime identity, Cloud KMS), the request path in the middle from the application through the Model Armor floor setting to Vertex AI inside a default-deny workload VPC and a VPC Service Controls perimeter, and evidence and detection controls along the bottom.</desc>
+
+  <defs>
+    <style>
+      .fnt   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+      .h1    { font-size: 25px; font-weight: 700; fill: #0f1720; }
+      .sub   { font-size: 13.5px; fill: #55616e; }
+      .zone  { font-size: 12px; font-weight: 700; fill: #55616e; letter-spacing: 1.4px; }
+      .box   { font-size: 13.5px; font-weight: 600; fill: #16212b; }
+      .small { font-size: 11.5px; fill: #5d6976; }
+      .tiny  { font-size: 10.5px; fill: #6d7883; }
+      .lbl   { font-size: 11px; font-weight: 600; fill: #48545f; }
+      .flow  { fill: none; stroke: #8b98a5; stroke-width: 1.7; }
+      .flow-strong { fill: none; stroke: #1a73e8; stroke-width: 2.3; }
+      .flow-bad { fill: none; stroke: #d93025; stroke-width: 2; stroke-dasharray: 6 4; }
+      .flow-dash { fill: none; stroke: #a0acb8; stroke-width: 1.6; stroke-dasharray: 5 4; }
+    </style>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b98a5"/>
+    </marker>
+    <marker id="arw-strong" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a73e8"/>
+    </marker>
+    <marker id="arw-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#d93025"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="800" fill="#fbfcfd"/>
+
+  <!-- ================= header ================= -->
+  <g class="fnt">
+    <text x="40" y="46" class="h1">Vertex AI Guardrails</text>
+    <text x="40" y="70" class="sub">OWASP Top 10 for LLM Applications (2025) &#183; NIST AI RMF 1.0 &#183; NIST SP 800-53 Rev 5 &#183; 29 controls</text>
+    <rect x="850" y="24" width="310" height="56" rx="7" fill="#eef4fe" stroke="#c6dbfb"/>
+    <text x="866" y="43" class="lbl" style="fill:#1a5fb4">var.guardrail_profile</text>
+    <text x="866" y="59" class="tiny" style="fill:#4a6a92">standard &#8594; MEDIUM+ filters &#183; 90d SOFTWARE &#183; dry-run</text>
+    <text x="866" y="73" class="tiny" style="fill:#4a6a92">strict &#8594; LOW+ filters &#183; 30d HSM &#183; enforced</text>
+  </g>
+
+  <!-- ================= preventive band ================= -->
+  <g class="fnt">
+    <text x="40" y="106" class="zone">PREVENTIVE &#183; EVALUATED BEFORE A REQUEST IS MADE</text>
+    <rect x="40" y="118" width="360" height="150" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="40" y="118" width="360" height="30" rx="9" fill="#e8f0fe"/>
+    <rect x="40" y="139" width="360" height="9" fill="#e8f0fe"/>
+    <text x="56" y="139" class="box" style="fill:#174ea6">Organization Policy  &#183;  ORG-*</text>
+    <text x="56" y="169" class="small">vertexai.allowedModels, per action</text>
+    <text x="56" y="187" class="tiny">gemini-3.5-flash:predict &#183; not :tune &#183; not :deploy</text>
+    <text x="56" y="203" class="small">Residency &#183; CMEK required</text>
+    <text x="56" y="221" class="tiny">gcp.resourceLocations &#183; gcp.restrictNonCmekServices</text>
+    <text x="56" y="237" class="small">No SA keys, no default-SA Editor</text>
+    <text x="56" y="255" class="tiny">Workbench: no public IP &#183; no root</text>
+    <rect x="420" y="118" width="360" height="150" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="420" y="118" width="360" height="30" rx="9" fill="#f3e8fd"/>
+    <rect x="420" y="139" width="360" height="9" fill="#f3e8fd"/>
+    <text x="436" y="139" class="box" style="fill:#6a1b9a">Runtime Identity  &#183;  IAM-*</text>
+    <text x="436" y="169" class="small">genai-app service account</text>
+    <text x="436" y="187" class="tiny">one identity per workload, attributable in audit logs</text>
+    <text x="436" y="203" class="small">Custom role: genaiModelInvoker</text>
+    <text x="436" y="221" class="tiny">aiplatform.endpoints.predict and nothing else</text>
+    <text x="436" y="237" class="tiny">not roles/aiplatform.user (deploy &#183; tune &#183; create)</text>
+    <text x="436" y="253" class="tiny" style="fill:#a50e0e">an injected instruction can only ask a question</text>
+    <rect x="800" y="118" width="360" height="150" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="800" y="118" width="360" height="30" rx="9" fill="#e6f4ea"/>
+    <rect x="800" y="139" width="360" height="9" fill="#e6f4ea"/>
+    <text x="816" y="139" class="box" style="fill:#0d652d">Cloud KMS  &#183;  ENC-*</text>
+    <text x="816" y="169" class="small">Regional key ring for AI data</text>
+    <text x="816" y="187" class="tiny">standard 90d SOFTWARE &#183; strict 30d HSM</text>
+    <text x="816" y="203" class="small">Key usable by service agents only</text>
+    <text x="816" y="221" class="tiny">gcp-sa-aiplatform &#183; gs-project-accounts</text>
+    <text x="816" y="237" class="tiny">key admins hold no decrypt grant</text>
+    <text x="816" y="253" class="tiny">validation block enforces the 90-day ceiling</text>
+  </g>
+
+  <!-- ================= request path ================= -->
+  <g class="fnt">
+    <text x="40" y="306" class="zone">REQUEST PATH &#183; WHAT A COMPROMISED MODEL CAN REACH</text>
+    <rect x="40" y="318" width="1120" height="240" rx="12" fill="#fdf7e8" stroke="#e8b33a" stroke-width="1.6" stroke-dasharray="7 5"/>
+    <text x="56" y="340" class="lbl" style="fill:#8a5a00">VPC SERVICE CONTROLS PERIMETER  &#183;  VSC-001</text>
+    <text x="56" y="356" class="tiny" style="fill:#8a6a2a">aiplatform &#183; storage &#183; bigquery &#183; notebooks &#183; modelarmor</text>
+
+    <!-- workload VPC -->
+    <rect x="64" y="372" width="400" height="168" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <text x="80" y="394" class="box">Workload VPC  &#183;  NET-*</text>
+    <rect x="80" y="406" width="170" height="58" rx="7" fill="#f1f3f4" stroke="#c4ccd4"/>
+    <text x="94" y="428" class="box">AI application</text>
+    <text x="94" y="446" class="tiny">runs as genai-app</text>
+    <text x="266" y="422" class="tiny">egress: deny all</text>
+    <text x="266" y="438" class="tiny">except 443 &#8594;</text>
+    <text x="266" y="454" class="tiny">199.36.153.4/30</text>
+    <text x="80" y="486" class="small">*.googleapis.com &#8594; restricted.googleapis.com</text>
+    <text x="80" y="504" class="tiny">private DNS &#183; flow logs &#183; deny-all ingress</text>
+    <text x="80" y="524" class="tiny" style="fill:#a50e0e">injected "send it to this URL" fails here</text>
+
+    <!-- Model Armor -->
+    <rect x="532" y="372" width="290" height="168" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="532" y="372" width="290" height="30" rx="9" fill="#fef7e0"/>
+    <rect x="532" y="393" width="290" height="9" fill="#fef7e0"/>
+    <text x="548" y="393" class="box" style="fill:#8a5a00">Model Armor  &#183;  MA-*</text>
+    <text x="548" y="423" class="small">Floor setting, inline on Vertex AI</text>
+    <text x="548" y="439" class="tiny">applies even if the app never calls it</text>
+    <text x="548" y="459" class="small">Template for explicit sanitize calls</text>
+    <text x="548" y="477" class="tiny">prompt injection &amp; jailbreak &#183; sensitive data</text>
+    <text x="548" y="493" class="tiny">malicious URLs &#183; RAI content filters</text>
+    <text x="548" y="521" class="tiny" style="fill:#a50e0e">a classifier: a tripwire, not a boundary</text>
+
+    <!-- Vertex AI -->
+    <rect x="890" y="372" width="246" height="168" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="890" y="372" width="246" height="30" rx="9" fill="#e8f0fe"/>
+    <rect x="890" y="393" width="246" height="9" fill="#e8f0fe"/>
+    <text x="906" y="393" class="box" style="fill:#174ea6">Vertex AI  &#183;  Gemini</text>
+    <text x="906" y="423" class="small">Allowlisted models only</text>
+    <text x="906" y="439" class="tiny">ORG-001 evaluated per call</text>
+    <text x="906" y="459" class="small">Resources encrypted with CMEK</text>
+    <text x="906" y="475" class="tiny">datasets &#183; tuned models &#183; endpoints</text>
+    <text x="906" y="495" class="small">Model Registry uploads</text>
+    <text x="906" y="511" class="tiny" style="fill:#a50e0e">outside the allowlist: review gate</text>
+
+    <path d="M 250 435 L 258 435" class="flow"/>
+    <path d="M 464 435 L 528 435" class="flow-strong" marker-end="url(#arw-strong)"/>
+    <text x="474" y="427" class="tiny" style="fill:#1a5fb4">predict</text>
+    <path d="M 822 435 L 886 435" class="flow-strong" marker-end="url(#arw-strong)"/>
+    <text x="830" y="427" class="tiny" style="fill:#1a5fb4">screened</text>
+
+    <!-- blocked exfiltration -->
+    <path d="M 166 540 L 166 574" class="flow-bad" marker-end="url(#arw-bad)"/>
+    <text x="178" y="572" class="lbl" style="fill:#d93025">&#10005; 0.0.0.0/0 denied (NET-002)</text>
+    <path d="M 1013 540 L 1013 574" class="flow-bad" marker-end="url(#arw-bad)"/>
+    <text x="770" y="572" class="lbl" style="fill:#d93025">&#10005; copy to outside project (VSC-001)</text>
+  </g>
+
+  <!-- ================= evidence band ================= -->
+  <g class="fnt">
+    <text x="40" y="604" class="zone">EVIDENCE AND DETECTION &#183; WHO NOTICES WHEN THE GUARDRAILS MOVE</text>
+    <rect x="40" y="616" width="360" height="150" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="40" y="616" width="360" height="30" rx="9" fill="#fef3e2"/>
+    <rect x="40" y="637" width="360" height="9" fill="#fef3e2"/>
+    <text x="56" y="637" class="box" style="fill:#9a4c00">Audit Logging  &#183;  LOG-*</text>
+    <text x="56" y="667" class="small">Data Access logs on aiplatform + modelarmor</text>
+    <text x="56" y="685" class="tiny">ADMIN_READ &#183; DATA_READ &#183; DATA_WRITE</text>
+    <text x="56" y="701" class="small">Retention-locked log bucket</text>
+    <text x="56" y="719" class="tiny">standard: 1y &#183; strict: 7y &#183; outlives destroy</text>
+    <text x="56" y="735" class="tiny">records who called which model, not the prompt</text>
+    <text x="56" y="751" class="tiny">Model Armor findings routed alongside</text>
+    <rect x="420" y="616" width="360" height="150" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="420" y="616" width="360" height="30" rx="9" fill="#fce8e6"/>
+    <rect x="420" y="637" width="360" height="9" fill="#fce8e6"/>
+    <text x="436" y="637" class="box" style="fill:#a50e0e">Guardrail Tampering Alerts  &#183;  DET-001..003</text>
+    <text x="436" y="667" class="small">IAM changed on Vertex AI resources</text>
+    <text x="436" y="685" class="tiny">who can use the model just changed</text>
+    <text x="436" y="701" class="small">Model deployed or undeployed</text>
+    <text x="436" y="719" class="tiny">a swapped model behind a stable endpoint</text>
+    <text x="436" y="735" class="small">Model Armor template or floor edited</text>
+    <text x="436" y="753" class="tiny">loosening a threshold is quieter than deleting it</text>
+    <rect x="800" y="616" width="360" height="150" rx="9" fill="#ffffff" stroke="#cfd8e1" stroke-width="1.5"/>
+    <rect x="800" y="616" width="360" height="30" rx="9" fill="#e6f4ea"/>
+    <rect x="800" y="637" width="360" height="9" fill="#e6f4ea"/>
+    <text x="816" y="637" class="box" style="fill:#0d652d">Policy as Code  &#183;  CI</text>
+    <text x="816" y="667" class="small">controls.yaml &#8594; CONTROLS.md</text>
+    <text x="816" y="685" class="tiny">CI fails if a control names code that does not exist</text>
+    <text x="816" y="701" class="small">4 Rego suites, 21 tests</text>
+    <text x="816" y="719" class="tiny">allow_all &#183; bare publisher &#183; inspect-only floor</text>
+    <text x="816" y="735" class="small">Budget alerts  (DET-004, LLM10)</text>
+    <text x="816" y="753" class="tiny">50% &#183; 90% &#183; 100% &#183; forecast</text>
+  </g>
+</svg>

@@ -37,3 +37,4 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - CI: `terraform fmt`/`validate`, tflint, Checkov, Trivy, Conftest, gitleaks and
   control-matrix integrity.
 - `examples/single-project/` and `examples/org-wide/`.
+- Architecture diagram (`gcp-vertex-ai-guardrails.svg`).

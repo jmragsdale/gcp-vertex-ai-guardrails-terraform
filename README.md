@@ -2,6 +2,8 @@
 
 Terraform that puts guardrails around generative AI on Google Cloud — which models can be called, by whom, what they can reach, what they are screened for, and who notices when someone loosens any of it — with a control matrix CI refuses to let you lie in.
 
+![Architecture](gcp-vertex-ai-guardrails.svg)
+
 ## 🎯 Overview
 
 Most "secure AI" guidance stops at the prompt: write a better system prompt, add a content filter, hope. That treats the model as the security boundary. It isn't one. A model will eventually follow an instruction it should not, because it reads text from places you do not control.
