@@ -1,0 +1,76 @@
+{
+  "title": "Vertex AI Guardrails",
+  "mobileTitle": [
+    "Vertex AI",
+    "Guardrails"
+  ],
+  "eyebrow": "GOOGLE CLOUD + AI",
+  "tagline": "AI guardrails at the platform boundary.",
+  "mobileTagline": [
+    "AI guardrails at the",
+    "platform boundary."
+  ],
+  "description": [
+    "Terraform for model access, identity and network reach.",
+    "Control mappings, screening and audit configuration."
+  ],
+  "mobileDescription": [
+    "Model access, identity and network reach.",
+    "Terraform controls with mapped evidence."
+  ],
+  "footerLeft": "TERRAFORM",
+  "footerMiddle": "GOOGLE CLOUD / VERTEX AI",
+  "footerRight": "CONTROL MATRIX / CODE / CI",
+  "diagram": [
+    "MODEL",
+    "IDENTITY",
+    "AUDIT"
+  ],
+  "summary": "Terraform reference controls for Vertex AI model access, workload identity, Model Armor, network boundaries and audit configuration.",
+  "cards": [
+    {
+      "slug": "controls",
+      "category": "CONTROL EVIDENCE",
+      "title": "Inspect the control matrix",
+      "lines": [
+        "Trace documented control mappings",
+        "to their Terraform implementations."
+      ],
+      "footer": "CONTROL MATRIX / GENERATED",
+      "href": "CONTROLS.md"
+    },
+    {
+      "slug": "examples",
+      "category": "EVALUATION PATH",
+      "title": "Explore deployment examples",
+      "lines": [
+        "Review the single-project setup",
+        "and the organization-wide notes."
+      ],
+      "footer": "EXAMPLES / DEPLOYMENT SCOPE",
+      "href": "examples/single-project/README.md"
+    },
+    {
+      "slug": "source",
+      "category": "IMPLEMENTATION",
+      "title": "Read the Terraform source",
+      "lines": [
+        "Module wiring, feature gates",
+        "and platform control definitions."
+      ],
+      "footer": "TERRAFORM / REFERENCE CODE",
+      "href": "terraform/main.tf"
+    },
+    {
+      "slug": "limits",
+      "category": "VALIDATION SCOPE",
+      "title": "Read what is verified",
+      "lines": [
+        "Separate recorded static checks",
+        "from unverified cloud deployment."
+      ],
+      "footer": "CHECKS / DEPLOYMENT LIMITS",
+      "href": "#validation-scope"
+    }
+  ]
+}

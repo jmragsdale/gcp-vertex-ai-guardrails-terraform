@@ -1,8 +1,61 @@
-# gcp-vertex-ai-guardrails-terraform
+<a id="gcp-vertex-ai-guardrails-terraform"></a>
+<a href="examples/single-project/README.md">
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/assets/readme/header-mobile.png">
+  <img src="docs/assets/readme/header.png" width="1440" alt="Vertex AI Guardrails. Terraform reference controls for Vertex AI model access, workload identity, Model Armor, network boundaries and audit configuration.">
+</picture>
+</a>
+
+<p>
+  <a href="examples/single-project/README.md"><strong>Start here ↗</strong></a> &nbsp; / &nbsp;
+  <a href="terraform/main.tf">Source</a> &nbsp; / &nbsp;
+  <a href="#project-guide">Project guide</a> &nbsp; / &nbsp;
+  <a href="https://github.com/jmragsdale">Profile</a>
+</p>
+
+Terraform reference controls for Vertex AI model access, workload identity, Model Armor, network boundaries and audit configuration.
+
+## Explore the project
+
+Open a card for the implementation, examples or supporting documentation.
+
+<p>
+<a href="CONTROLS.md">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/controls-dark.png">
+  <img src="docs/assets/readme/controls-light.png" width="360" alt="Inspect the control matrix. Trace documented control mappings to their Terraform implementations.">
+</picture>
+</a>
+<a href="examples/single-project/README.md">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/examples-dark.png">
+  <img src="docs/assets/readme/examples-light.png" width="360" alt="Explore deployment examples. Review the single-project setup and the organization-wide notes.">
+</picture>
+</a>
+<a href="terraform/main.tf">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/source-dark.png">
+  <img src="docs/assets/readme/source-light.png" width="360" alt="Read the Terraform source. Module wiring, feature gates and platform control definitions.">
+</picture>
+</a>
+<a href="#validation-scope">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/limits-dark.png">
+  <img src="docs/assets/readme/limits-light.png" width="360" alt="Read what is verified. Separate recorded static checks from unverified cloud deployment.">
+</picture>
+</a>
+</p>
+
+## Project guide
 
 Terraform that puts guardrails around generative AI on Google Cloud — which models can be called, by whom, what they can reach, what they are screened for, and who notices when someone loosens any of it — with a control matrix CI refuses to let you lie in.
 
+<details>
+<summary>Architecture diagram</summary>
+
 ![Architecture](gcp-vertex-ai-guardrails.svg)
+
+</details>
 
 ## 🎯 Overview
 
@@ -17,6 +70,9 @@ This repo puts the boundary back in the platform, where it can be enforced befor
 - **Evidence.** Data Access audit logs for every model call, locked retention, and alerts on the changes an attacker with a foothold would make first: IAM, model deployments, and the guardrails themselves.
 
 Like its siblings ([aws](https://github.com/jmragsdale/aws-compliance-baseline-terraform) · [azure](https://github.com/jmragsdale/az-compliance-baseline-terraform) · [gcp](https://github.com/jmragsdale/gcp-compliance-baseline-terraform)), `controls/controls.yaml` is the source of truth: every control names the Terraform address that implements it, `controls/render.py` generates `CONTROLS.md`, and CI fails if a claimed address stops existing. **29 controls, all resolvable to real code.**
+
+<details>
+<summary>Architecture flow (text)</summary>
 
 ```
                       ORGANIZATION (or single project)
@@ -40,6 +96,8 @@ Like its siblings ([aws](https://github.com/jmragsdale/aws-compliance-baseline-t
                    restricted.         dry-run (standard) → enforced (strict)
                    googleapis.com:443
 ```
+
+</details>
 
 ## ✨ Features
 
@@ -93,6 +151,8 @@ Control ID prefixes: `ORG-` org policy · `IAM-` identity · `ENC-` keys · `NET
 **Two OWASP categories are not covered, on purpose.** LLM08 (vector and embedding weaknesses) and LLM09 (misinformation) live in how an application builds its retrieval index and uses model output. No platform control reaches them, and mapping one anyway would be decoration.
 
 **The AI RMF number is small on purpose too.** Seven subcategories, all in MEASURE and MANAGE, because those are the ones infrastructure can produce evidence for. GOVERN and MAP are organisational practice — policies, roles, impact assessments — and Terraform cannot implement a governance committee.
+
+<a id="validation-scope"></a>
 
 ## ⚠️ What is and is not verified
 
@@ -154,3 +214,10 @@ Built by Jermaine Ragsdale — cloud security architect, CISSP, AWS Security Spe
 I do LLM application security reviews and cloud security assessments: **[jmragsdale.com](https://jmragsdale.com)**
 
 MIT licensed.
+
+<details>
+<summary>README visual assets</summary>
+
+[Artwork sources and regeneration notes](docs/assets/readme/README.md).
+
+</details>
