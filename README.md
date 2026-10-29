@@ -1,4 +1,5 @@
 <a id="gcp-vertex-ai-guardrails-terraform"></a>
+
 <a href="examples/single-project/README.md">
 <picture>
   <source media="(max-width: 600px)" srcset="docs/assets/readme/header-mobile.png">
